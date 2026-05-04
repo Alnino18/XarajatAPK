@@ -1,7 +1,4 @@
-import base64
-
-# Define the full PWA HTML content with Google Sheets integration
-pwa_html = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
 <meta charset="UTF-8"/>
@@ -10,6 +7,7 @@ pwa_html = """<!DOCTYPE html>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Пул"/>
 <title>Пул — Харажатлар</title>
+<!-- PWA Manifest -->
 <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlB1bCAtIEtoYXJhamF0bGFyIiwKICAic2hvcnRfbmFtZSI6ICJQdWwiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwMDAwMCIsCiAgInRoZW1lX2NvbG9yIjogIzAwMDAwMCIKfQ=="/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -40,10 +38,10 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-s
 .ios-row-body{flex:1}.ios-row-amt{font-weight:600}.ios-row-amt.out{color:var(--red)}.ios-row-amt.in{color:var(--grn)}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px}
 .nk{background:var(--bg3);border:none;border-radius:12px;height:60px;font-size:24px;color:#fff}
-.nk.action{background:var(--blue);grid-column:span 3}
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(44,44,46,.9);padding:10px 20px;border-radius:20px;opacity:0;transition:.3s;z-index:1000}
+.nk.action{background:var(--blue);grid-column:span 3; font-weight: 600;}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(44,44,46,.9);padding:10px 20px;border-radius:20px;opacity:0;transition:.3s;z-index:1000; color: #fff; font-size: 14px;}
 .toast.show{opacity:1}
-.sync-btn{margin:10px 16px;padding:10px;width:calc(100% - 32px);background:var(--bg3);border:none;color:var(--blue);border-radius:10px;font-weight:600}
+.sync-btn{margin:10px 16px;padding:12px;width:calc(100% - 32px);background:var(--bg3);border:none;color:var(--blue);border-radius:10px;font-weight:600; cursor:pointer;}
 </style>
 </head>
 <body>
@@ -67,7 +65,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-s
     <div style="text-align:center;margin:20px 0">
         <div style="font-size:14px;color:var(--txt2)">Сумма</div>
         <div style="font-size:50px;font-weight:200" id="disp-amt">0</div>
-        <input id="f-name" placeholder="Нима учун?" style="width:80%;padding:12px;background:var(--bg3);border:none;border-radius:10px;color:#fff;margin-top:10px;text-align:center"/>
+        <input id="f-name" placeholder="Нима учун?" style="width:80%;padding:12px;background:var(--bg3);border:none;border-radius:10px;color:#fff;margin-top:10px;text-align:center;outline:none;"/>
     </div>
     <div class="numpad" id="numpad"></div>
 </div>
@@ -78,6 +76,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-s
 </nav>
 </div>
 <div id="toast" class="toast"></div>
+
 <script>
 // !!! ШУ ЕРГА GOOGLE SCRIPT URL-НИ ҚЎЙИНГ !!!
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyxdehKmUDj68GZCwWQ5yioiv5sdV_JTgEbwkMKnWCIqy1CH56PfC2u3OJB32C4Xu8/exec";
@@ -125,9 +124,10 @@ async function addTx(){
     toast('Телефонга сақланди...');
     try {
         await fetch(GOOGLE_SHEET_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(newTx)});
-        toast('✓ Google Таблицага юборилди');
+        toast('✓ Булутга юборилди');
     } catch(e) { toast('⚠ Фақат телефонга сақланди'); }
     amtStr=''; document.getElementById('disp-amt').textContent='0';
+    document.getElementById('f-name').value='';
 }
 
 async function syncFromCloud(){
@@ -135,8 +135,15 @@ async function syncFromCloud(){
     try {
         const res=await fetch(GOOGLE_SHEET_URL);
         const data=await res.json();
-        if(data.length>0){ txs=data; save(); renderHome(); toast('✓ Маълумотлар янгиланди'); }
-    } catch(e){ toast('Хатолик юз берди'); }
+        if(data && data.length > 0){ 
+            txs=data; 
+            save(); 
+            renderHome(); 
+            toast('✓ Янгиланди'); 
+        } else {
+            toast('Булутда маълумот йўқ');
+        }
+    } catch(e){ toast('Синхронизацияда хатолик'); }
 }
 
 function renderHome(){
@@ -146,20 +153,21 @@ function renderHome(){
     document.getElementById('h-inc').textContent=fmt(inc);
     document.getElementById('h-exp').textContent=fmt(exp);
     const wrap=document.getElementById('home-list-wrap');
-    wrap.innerHTML='<div class="ios-list">' + txs.map(t=>`
+    wrap.innerHTML='<div class="ios-list">' + txs.slice(0,20).map(t=>`
         <div class="ios-row">
-            <div class="ios-row-ico ${t.type==='expense'?'out':'in'}">${t.name[0].toUpperCase()}</div>
+            <div class="ios-row-ico ${t.type==='expense'?'out':'in'}">${t.name ? t.name[0].toUpperCase() : 'P'}</div>
             <div class="ios-row-body"><div>${t.name}</div><div style="font-size:12px;color:var(--txt2)">${t.date.slice(0,10)}</div></div>
             <div class="ios-row-amt ${t.type==='expense'?'out':'in'}">${t.type==='expense'?'-':'+'}${fmt(t.amt)}</div>
         </div>`).join('') + '</div>';
 }
 
 buildNumpad(); renderHome();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9PmV2ZW50LnJlc3BvbmRXaXRoKGZldGNoKGUucmVxdWVzdCkpKTs=');
+// Service Worker for Offline
+if('serviceWorker' in navigator) {
+    const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`;
+    const blob = new Blob([swCode], {type: 'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob));
+}
 </script>
 </body>
-</html>"""
-
-# Generate a single HTML file for the user
-with open("pul_app.html", "w", encoding="utf-8") as f:
-    f.write(pwa_html)
+</html>
