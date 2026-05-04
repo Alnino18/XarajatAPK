@@ -79,7 +79,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-s
 
 <script>
 // !!! ШУ ЕРГА GOOGLE SCRIPT URL-НИ ҚЎЙИНГ !!!
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbww6l81IfiFa6DaYLFtLPa2sB-6hSdKdHFYDARgIG49D8LoZNV4C5_nd0oEUbHMqylJ/exec";
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzmAuhkQK_Dav9-jRshYfOs5q9XVPWm5MbvYXVCQ8Ig_IR6HQ6edD--3G7qB2xN7sDQ/exec";
 
 let txs = JSON.parse(localStorage.getItem('p_txs')||'[]');
 let amtStr = '';
@@ -115,17 +115,27 @@ function buildNumpad(){
 }
 
 async function addTx(){
-    const name=document.getElementById('f-name').value||'Харажат';
-    const amt=parseFloat(amtStr);
+    const name = document.getElementById('f-name').value || 'Харажат';
+    const amt = parseFloat(amtStr);
     if(!amt) return toast('Сумма киритинг');
-    const newTx={id:Date.now(),name,amt,type:txType,date:new Date().toISOString()};
-    txs.unshift(newTx); save();
+    
+    const now = new Date();
+    const simpleDate = now.toLocaleDateString('uz-UZ') + ' ' + now.getHours() + ':' + now.getMinutes();
+
+    const newTx = { name, amt, date: simpleDate }; // ID ва Type олиб ташланди
+    txs.unshift(newTx); 
+    save();
     renderHome();
-    toast('Телефонга сақланди...');
+    
     try {
-        await fetch(GOOGLE_SHEET_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(newTx)});
-        toast('✓ Булутга юборилди');
-    } catch(e) { toast('⚠ Фақат телефонга сақланди'); }
+        await fetch(GOOGLE_SHEET_URL, {
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(newTx)
+        });
+        toast('✓ Булутга қўшилди');
+    } catch(e) { toast('⚠ Хатолик'); }
+    
     amtStr=''; document.getElementById('disp-amt').textContent='0';
     document.getElementById('f-name').value='';
 }
@@ -147,17 +157,20 @@ async function syncFromCloud(){
 }
 
 function renderHome(){
-    const inc=txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-    const exp=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
-    document.getElementById('h-bal').textContent=fmt(inc-exp);
-    document.getElementById('h-inc').textContent=fmt(inc);
-    document.getElementById('h-exp').textContent=fmt(exp);
-    const wrap=document.getElementById('home-list-wrap');
-    wrap.innerHTML='<div class="ios-list">' + txs.slice(0,20).map(t=>`
+    const exp = txs.reduce((s, t) => s + t.amt, 0);
+    document.getElementById('h-bal').textContent = fmt(exp);
+    document.getElementById('h-exp').textContent = fmt(exp); // Ҳаммаси харажат деб ҳисобланади
+    
+    const wrap = document.getElementById('home-list-wrap');
+    wrap.innerHTML = '<div class="ios-list">' + txs.slice(0, 30).map(t => `
         <div class="ios-row">
-            <div class="ios-row-ico ${t.type==='expense'?'out':'in'}">${t.name ? t.name[0].toUpperCase() : 'P'}</div>
-            <div class="ios-row-body"><div>${t.name}</div><div style="font-size:12px;color:var(--txt2)">${t.date.slice(0,10)}</div></div>
-            <div class="ios-row-amt ${t.type==='expense'?'out':'in'}">${t.type==='expense'?'-':'+'}${fmt(t.amt)}</div>
+            <div class="ios-row-ico out">${t.name[0].toUpperCase()}</div>
+            <div class="ios-row-body">
+                <div>${t.name}</div>
+                <div style="font-size:12px;color:var(--txt2)">${t.date}</div>
+            </div>
+            <div class="ios-row-amt out">-${fmt(t.amt)}</div>
+            <button onclick="deleteTx('${t.name}', ${t.amt})" style="background:none; border:none; color:var(--red); font-size:20px;">&times;</button>
         </div>`).join('') + '</div>';
 }
 
@@ -169,7 +182,28 @@ if('serviceWorker' in navigator) {
     navigator.serviceWorker.register(URL.createObjectURL(blob));
 
 }
+async function deleteTx(id) {
+    if (!confirm("Ушбу харажатни ўчиришни тасдиқлайсизми?")) return;
 
+    // 1. Телефон хотирасидан ўчириш
+    txs = txs.filter(t => t.id !== id);
+    save();
+    renderHome();
+    toast('Ўчирилди');
+
+    // 2. Google Таблицадан ўчириш
+    try {
+        await fetch(GOOGLE_SHEET_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'delete', id: id })
+        });
+        toast('✓ Булутдан ҳам ўчирилди');
+    } catch (e) {
+        toast('⚠ Фақат телефондан ўчирилди');
+    }
+}
+  
   // Ойлик ҳисоботни текшириш ва кўрсатиш
 function checkMonthlyReport() {
     const today = new Date();
