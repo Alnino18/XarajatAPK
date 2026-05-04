@@ -167,7 +167,66 @@ if('serviceWorker' in navigator) {
     const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`;
     const blob = new Blob([swCode], {type: 'application/javascript'});
     navigator.serviceWorker.register(URL.createObjectURL(blob));
+
 }
+
+  // Ойлик ҳисоботни текшириш ва кўрсатиш
+function checkMonthlyReport() {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth(); // 0-11
+    const year = today.getFullYear();
+
+    // Охирги марта кўрсатилган ҳисобот санасини оламиз
+    const lastReport = localStorage.getItem('last_monthly_report');
+    const currentMonthKey = `${year}-${month}`;
+
+    // Агар бугун 1-сана бўлса ва бу ой учун ҳисобот ҳали кўрсатилмаган бўлса
+    if (day === 1 && lastReport !== currentMonthKey) {
+        generateReport(month, year);
+        localStorage.setItem('last_monthly_report', currentMonthKey);
+    }
+}
+
+function generateReport(currentMonth, currentYear) {
+    // Ўтган ойни ҳисоблаймиз
+    let targetMonth = currentMonth - 1;
+    let targetYear = currentYear;
+    if (targetMonth < 0) {
+        targetMonth = 11;
+        targetYear--;
+    }
+
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    
+    // Ўтган ой маълумотларини филтрлаймиз
+    const lastMonthTxs = txs.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+    });
+
+    if (lastMonthTxs.length === 0) return;
+
+    const inc = lastMonthTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amt, 0);
+    const exp = lastMonthTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amt, 0);
+    const topExp = lastMonthTxs.filter(t => t.type === 'expense').sort((a, b) => b.amt - a.amt)[0];
+
+    // Ҳисобот ойнасини чиқариш (Alert ёки махсус Див)
+    const reportMsg = `
+📊 ${monthNames[targetMonth]} ойи учун ҳисобот:
+----------------------------------
+💰 Умумий кирим: ${fmt(inc)} сўм
+💸 Умумий чиқим: ${fmt(exp)} сўм
+⚖️ Фарқ: ${fmt(inc - exp)} сўм
+🔥 Энг катта харажат: ${topExp ? topExp.name + ' (' + fmt(topExp.amt) + ')' : 'йўқ'}
+----------------------------------
+Баракасини берсин! 🚀`;
+
+    alert(reportMsg); // Соддароқ бўлиши учун Alert ишлатилди
+}
+
+// Илова юкланганда текширишни бошлаймиз
+window.addEventListener('load', checkMonthlyReport);
 </script>
 </body>
 </html>
