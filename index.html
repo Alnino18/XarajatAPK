@@ -1,266 +1,331 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Пул"/>
-<title>Пул — Харажатлар</title>
-<!-- PWA Manifest -->
-<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlB1bCAtIEtoYXJhamF0bGFyIiwKICAic2hvcnRfbmFtZSI6ICJQdWwiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwMDAwMCIsCiAgInRoZW1lX2NvbG9yIjogIzAwMDAwMCIKfQ=="/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#000;--bg1:#0a0a0a;--bg2:#111;--bg3:#1c1c1e;--bg4:#2c2c2e;--bg5:#3a3a3c;
-  --sep:rgba(255,255,255,.08);--txt:#fff;--txt2:rgba(255,255,255,.55);--txt3:rgba(255,255,255,.3);
-  --blue:#0a84ff;--grn:#30d158;--red:#ff453a;--amb:#ff9f0a;--purple:#bf5af2;
-  --r:16px;--ios-bottom:env(safe-area-inset-bottom,20px);--ios-top:env(safe-area-inset-top,44px);
-}
-html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,sans-serif;overflow:hidden}
-.shell{display:flex;flex-direction:column;height:100dvh}
-.content{flex:1;overflow-y:auto;padding-bottom:calc(84px + var(--ios-bottom))}
-.safe-top{height:var(--ios-top)}
-.tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(28,28,30,.85);backdrop-filter:blur(20px);border-top:0.5px solid var(--sep);padding:8px 0 calc(8px + var(--ios-bottom));display:flex;z-index:200}
-.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;color:var(--txt3);cursor:pointer}
-.tb.on{color:var(--blue)}
-.tb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6}
-.pg{display:none}.pg.on{display:block}
-.large-title{font-size:34px;font-weight:700;padding:16px 20px 4px}
-.balance-card{margin:12px 16px;background:linear-gradient(145deg,#1a1a2e,#0f3460);border-radius:24px;padding:24px}
-.bc-amount{font-size:48px;font-weight:700;margin-bottom:10px}
-.bc-row{display:flex;gap:15px;margin-top:15px;border-top:0.5px solid rgba(255,255,255,.1)}
-.bc-item{flex:1;padding-top:15px}
-.ios-list{margin:0 16px;background:var(--bg3);border-radius:var(--r);overflow:hidden}
-.ios-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:0.5px solid var(--sep)}
-.ios-row-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:bold}
-.ios-row-ico.out{background:var(--red)}.ios-row-ico.in{background:var(--grn)}
-.ios-row-body{flex:1}.ios-row-amt{font-weight:600}.ios-row-amt.out{color:var(--red)}.ios-row-amt.in{color:var(--grn)}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px}
-.nk{background:var(--bg3);border:none;border-radius:12px;height:60px;font-size:24px;color:#fff}
-.nk.action{background:var(--blue);grid-column:span 3; font-weight: 600;}
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(44,44,46,.9);padding:10px 20px;border-radius:20px;opacity:0;transition:.3s;z-index:1000; color: #fff; font-size: 14px;}
-.toast.show{opacity:1}
-.sync-btn{margin:10px 16px;padding:12px;width:calc(100% - 32px);background:var(--bg3);border:none;color:var(--blue);border-radius:10px;font-weight:600; cursor:pointer;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>Пул Назорати</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card-bg: #1c1c1e;
+            --accent: #0a84ff;
+            --red: #ff453a;
+            --gray: #8e8e93;
+            --text: #ffffff;
+            --ios-blur: rgba(28, 28, 30, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            margin: 0;
+            padding: env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Замонавий Header */
+        .header {
+            padding: 20px 16px 10px;
+            position: sticky;
+            top: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        /* Асосий карта (Glassmorphism) */
+        .main-card {
+            background: linear-gradient(145deg, #1c1c1e, #2c2c2e);
+            margin: 16px;
+            padding: 24px;
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .total-label {
+            color: var(--gray);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .total-amount {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        /* Инпутлар ва Тугмалар */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            padding: 14px 16px;
+            font-size: 17px;
+            width: 100%;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .save-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .save-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Харажатлар рўйхати */
+        .section-title {
+            margin: 20px 16px 10px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .history-list {
+            margin: 0 16px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 0.5px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 69, 58, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--red);
+            font-weight: bold;
+            margin-right: 14px;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 17px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .item-date {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .item-amount {
+            color: var(--red);
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .delete-action {
+            margin-left: 12px;
+            color: var(--gray);
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Toast хабарнома */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+    </style>
 </head>
 <body>
-<div class="shell">
-<div class="content" id="content">
-<div class="safe-top"></div>
-<div id="pg-home" class="pg on">
-    <div class="large-title">Баланс</div>
-    <div class="balance-card">
-        <div class="bc-amount"><span id="h-bal">0</span> <small style="font-size:18px">сўм</small></div>
-        <div class="bc-row">
-            <div class="bc-item" style="color:var(--grn)">Кирим: <br><span id="h-inc">0</span></div>
-            <div class="bc-item" style="color:var(--red)">Чиқим: <br><span id="h-exp">0</span></div>
-        </div>
+
+<div class="header">
+    <h1>Ҳисоб</h1>
+</div>
+
+<div class="main-card">
+    <div class="total-label">Умумий харажатлар</div>
+    <div class="total-amount" id="total-val">0 сўм</div>
+    
+    <div class="input-group">
+        <input type="text" id="f-name" placeholder="Нима сотиб олдингиз?">
+        <input type="number" id="f-amt" placeholder="Сумма (масалан: 50000)">
+        <button class="save-btn" onclick="addTx()">Харажатни қўшиш</button>
     </div>
-    <button class="sync-btn" onclick="syncFromCloud()">☁ Булутдан янгилаш</button>
-    <div id="home-list-wrap"></div>
 </div>
-<div id="pg-add" class="pg">
-    <div class="large-title">Қўшиш</div>
-    <div style="text-align:center;margin:20px 0">
-        <div style="font-size:14px;color:var(--txt2)">Сумма</div>
-        <div style="font-size:50px;font-weight:200" id="disp-amt">0</div>
-        <input id="f-name" placeholder="Нима учун?" style="width:80%;padding:12px;background:var(--bg3);border:none;border-radius:10px;color:#fff;margin-top:10px;text-align:center;outline:none;"/>
-    </div>
-    <div class="numpad" id="numpad"></div>
+
+<div class="section-title">Тарих</div>
+<div id="list" class="history-list">
+    <!-- Маълумотлар шу ерга тушади -->
 </div>
-</div>
-<nav class="tabbar">
-    <button class="tb on" onclick="go('home',this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Бош</span></button>
-    <button class="tb" onclick="go('add',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg><span>Қўшиш</span></button>
-</nav>
-</div>
-<div id="toast" class="toast"></div>
+
+<div id="toast" class="toast">Хабар юборилди</div>
 
 <script>
-// !!! ШУ ЕРГА GOOGLE SCRIPT URL-НИ ҚЎЙИНГ !!!
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzmAuhkQK_Dav9-jRshYfOs5q9XVPWm5MbvYXVCQ8Ig_IR6HQ6edD--3G7qB2xN7sDQ/exec";
+    // СКРИПТ URL-НИ ШУ ЕРГА ҚЎЙИНГ
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxbvsPiGvdDmwFz9Jm1tICBLmLQLThryeY8nUh9eFI_RRNPu90aIYKpedNdkWdr_6L9/exec";
+    let txs = JSON.parse(localStorage.getItem('my_money') || '[]');
 
-let txs = JSON.parse(localStorage.getItem('p_txs')||'[]');
-let amtStr = '';
-let txType = 'expense';
+    function toast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2500);
+    }
 
-function save(){ localStorage.setItem('p_txs', JSON.stringify(txs)); }
-function fmt(n){ return Math.abs(n).toLocaleString(); }
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+    function fmt(n) {
+        return Number(n).toLocaleString('uz-UZ');
+    }
 
-function go(name,btn){
-    document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-    document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
-    document.getElementById('pg-'+name).classList.add('on');
-    btn.classList.add('on');
-    if(name==='home') renderHome();
-}
+    async function load() {
+        render();
+        try {
+            const r = await fetch(GOOGLE_SHEET_URL);
+            txs = await r.json();
+            localStorage.setItem('my_money', JSON.stringify(txs));
+            render();
+        } catch (e) { console.log("Оффлайн режими"); }
+    }
 
-function buildNumpad(){
-    const keys=['7','8','9','4','5','6','1','2','3','.', '0','⌫'];
-    const np=document.getElementById('numpad');
-    keys.forEach(k=>{
-        const b=document.createElement('button'); b.className='nk'; b.textContent=k;
-        b.onclick=()=>{
-            if(k==='⌫') amtStr=amtStr.slice(0,-1);
-            else if(k==='.' && !amtStr.includes('.')) amtStr+=k;
-            else if(k!=='.' && k!=='⌫') amtStr+=k;
-            document.getElementById('disp-amt').textContent = amtStr||'0';
-        };
-        np.appendChild(b);
-    });
-    const sub=document.createElement('button'); sub.className='nk action'; sub.textContent='Сақлаш';
-    sub.onclick=addTx; np.appendChild(sub);
-}
-
-async function addTx(){
-    const name = document.getElementById('f-name').value || 'Харажат';
-    const amt = parseFloat(amtStr);
-    if(!amt) return toast('Сумма киритинг');
-    
-    const now = new Date();
-    const simpleDate = now.toLocaleDateString('uz-UZ') + ' ' + now.getHours() + ':' + now.getMinutes();
-
-    const newTx = { name, amt, date: simpleDate }; // ID ва Type олиб ташланди
-    txs.unshift(newTx); 
-    save();
-    renderHome();
-    
-    try {
-        await fetch(GOOGLE_SHEET_URL, {
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(newTx)
-        });
-        toast('✓ Булутга қўшилди');
-    } catch(e) { toast('⚠ Хатолик'); }
-    
-    amtStr=''; document.getElementById('disp-amt').textContent='0';
-    document.getElementById('f-name').value='';
-}
-
-async function syncFromCloud(){
-    toast('☁ Юкланмоқда...');
-    try {
-        const res=await fetch(GOOGLE_SHEET_URL);
-        const data=await res.json();
-        if(data && data.length > 0){ 
-            txs=data; 
-            save(); 
-            renderHome(); 
-            toast('✓ Янгиланди'); 
-        } else {
-            toast('Булутда маълумот йўқ');
+    async function addTx() {
+        const nameInput = document.getElementById('f-name');
+        const amtInput = document.getElementById('f-amt');
+        
+        if (!nameInput.value || !amtInput.value) {
+            toast("Маълумотларни тўлиқ тўлдиринг");
+            return;
         }
-    } catch(e){ toast('Синхронизацияда хатолик'); }
-}
 
-function renderHome(){
-    const exp = txs.reduce((s, t) => s + t.amt, 0);
-    document.getElementById('h-bal').textContent = fmt(exp);
-    document.getElementById('h-exp').textContent = fmt(exp); // Ҳаммаси харажат деб ҳисобланади
-    
-    const wrap = document.getElementById('home-list-wrap');
-    wrap.innerHTML = '<div class="ios-list">' + txs.slice(0, 30).map(t => `
-        <div class="ios-row">
-            <div class="ios-row-ico out">${t.name[0].toUpperCase()}</div>
-            <div class="ios-row-body">
-                <div>${t.name}</div>
-                <div style="font-size:12px;color:var(--txt2)">${t.date}</div>
+        const newTx = {
+            name: nameInput.value,
+            amt: amtInput.value,
+            date: new Date().toLocaleString('uz-UZ').slice(0, 17)
+        };
+
+        txs.unshift(newTx);
+        render();
+        
+        nameInput.value = '';
+        amtInput.value = '';
+
+        try {
+            await fetch(GOOGLE_SHEET_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(newTx)
+            });
+            toast("Булутга муваффақиятли сақланди");
+        } catch (e) {
+            toast("Хатолик: фақат телефонда сақланди");
+        }
+    }
+
+    async function deleteTx(name, amt) {
+        if (!confirm("Ушбу харажатни ўчирмоқчимисиз?")) return;
+        
+        txs = txs.filter(t => !(t.name === name && t.amt == amt));
+        render();
+        
+        try {
+            await fetch(GOOGLE_SHEET_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({action: 'delete', name, amt})
+            });
+            toast("Ўчирилди");
+        } catch (e) {
+            toast("Булутда ўчиришда хатолик");
+        }
+    }
+
+    function render() {
+        const total = txs.reduce((s, t) => s + Number(t.amt), 0);
+        document.getElementById('total-val').textContent = fmt(total) + " сўм";
+        
+        const listDiv = document.getElementById('list');
+        if (txs.length === 0) {
+            listDiv.innerHTML = '<div style="padding:40px; text-align:center; color:#8e8e93;">Ҳозирча харажатлар йўқ</div>';
+            return;
+        }
+
+        listDiv.innerHTML = txs.map(t => `
+            <div class="list-item">
+                <div class="item-icon">${t.name[0].toUpperCase()}</div>
+                <div class="item-info">
+                    <div class="item-name">${t.name}</div>
+                    <div class="item-date">${t.date}</div>
+                </div>
+                <div class="item-amount">-${fmt(t.amt)}</div>
+                <button class="delete-action" onclick="deleteTx('${t.name}', ${t.amt})">&times;</button>
             </div>
-            <div class="ios-row-amt out">-${fmt(t.amt)}</div>
-            <button onclick="deleteTx('${t.name}', ${t.amt})" style="background:none; border:none; color:var(--red); font-size:20px;">&times;</button>
-        </div>`).join('') + '</div>';
-}
-
-buildNumpad(); renderHome();
-// Service Worker for Offline
-if('serviceWorker' in navigator) {
-    const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`;
-    const blob = new Blob([swCode], {type: 'application/javascript'});
-    navigator.serviceWorker.register(URL.createObjectURL(blob));
-
-}
-async function deleteTx(id) {
-    if (!confirm("Ушбу харажатни ўчиришни тасдиқлайсизми?")) return;
-
-    // 1. Телефон хотирасидан ўчириш
-    txs = txs.filter(t => t.id !== id);
-    save();
-    renderHome();
-    toast('Ўчирилди');
-
-    // 2. Google Таблицадан ўчириш
-    try {
-        await fetch(GOOGLE_SHEET_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: 'delete', id: id })
-        });
-        toast('✓ Булутдан ҳам ўчирилди');
-    } catch (e) {
-        toast('⚠ Фақат телефондан ўчирилди');
-    }
-}
-  
-  // Ойлик ҳисоботни текшириш ва кўрсатиш
-function checkMonthlyReport() {
-    const today = new Date();
-    const day = today.getDate();
-    const month = today.getMonth(); // 0-11
-    const year = today.getFullYear();
-
-    // Охирги марта кўрсатилган ҳисобот санасини оламиз
-    const lastReport = localStorage.getItem('last_monthly_report');
-    const currentMonthKey = `${year}-${month}`;
-
-    // Агар бугун 1-сана бўлса ва бу ой учун ҳисобот ҳали кўрсатилмаган бўлса
-    if (day === 1 && lastReport !== currentMonthKey) {
-        generateReport(month, year);
-        localStorage.setItem('last_monthly_report', currentMonthKey);
-    }
-}
-
-function generateReport(currentMonth, currentYear) {
-    // Ўтган ойни ҳисоблаймиз
-    let targetMonth = currentMonth - 1;
-    let targetYear = currentYear;
-    if (targetMonth < 0) {
-        targetMonth = 11;
-        targetYear--;
+        `).join('');
     }
 
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-    
-    // Ўтган ой маълумотларини филтрлаймиз
-    const lastMonthTxs = txs.filter(t => {
-        const d = new Date(t.date);
-        return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
-    });
-
-    if (lastMonthTxs.length === 0) return;
-
-    const inc = lastMonthTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amt, 0);
-    const exp = lastMonthTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amt, 0);
-    const topExp = lastMonthTxs.filter(t => t.type === 'expense').sort((a, b) => b.amt - a.amt)[0];
-
-    // Ҳисобот ойнасини чиқариш (Alert ёки махсус Див)
-    const reportMsg = `
-📊 ${monthNames[targetMonth]} ойи учун ҳисобот:
-----------------------------------
-💰 Умумий кирим: ${fmt(inc)} сўм
-💸 Умумий чиқим: ${fmt(exp)} сўм
-⚖️ Фарқ: ${fmt(inc - exp)} сўм
-🔥 Энг катта харажат: ${topExp ? topExp.name + ' (' + fmt(topExp.amt) + ')' : 'йўқ'}
-----------------------------------
-Баракасини берсин! 🚀`;
-
-    alert(reportMsg); // Соддароқ бўлиши учун Alert ишлатилди
-}
-
-// Илова юкланганда текширишни бошлаймиз
-window.addEventListener('load', checkMonthlyReport);
+    load();
 </script>
+
 </body>
 </html>
