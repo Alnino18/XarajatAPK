@@ -1,0 +1,165 @@
+import base64
+
+# Define the full PWA HTML content with Google Sheets integration
+pwa_html = """<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Пул"/>
+<title>Пул — Харажатлар</title>
+<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlB1bCAtIEtoYXJhamF0bGFyIiwKICAic2hvcnRfbmFtZSI6ICJQdWwiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwMDAwMCIsCiAgInRoZW1lX2NvbG9yIjogIzAwMDAwMCIKfQ=="/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#000;--bg1:#0a0a0a;--bg2:#111;--bg3:#1c1c1e;--bg4:#2c2c2e;--bg5:#3a3a3c;
+  --sep:rgba(255,255,255,.08);--txt:#fff;--txt2:rgba(255,255,255,.55);--txt3:rgba(255,255,255,.3);
+  --blue:#0a84ff;--grn:#30d158;--red:#ff453a;--amb:#ff9f0a;--purple:#bf5af2;
+  --r:16px;--ios-bottom:env(safe-area-inset-bottom,20px);--ios-top:env(safe-area-inset-top,44px);
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,sans-serif;overflow:hidden}
+.shell{display:flex;flex-direction:column;height:100dvh}
+.content{flex:1;overflow-y:auto;padding-bottom:calc(84px + var(--ios-bottom))}
+.safe-top{height:var(--ios-top)}
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(28,28,30,.85);backdrop-filter:blur(20px);border-top:0.5px solid var(--sep);padding:8px 0 calc(8px + var(--ios-bottom));display:flex;z-index:200}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;color:var(--txt3);cursor:pointer}
+.tb.on{color:var(--blue)}
+.tb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6}
+.pg{display:none}.pg.on{display:block}
+.large-title{font-size:34px;font-weight:700;padding:16px 20px 4px}
+.balance-card{margin:12px 16px;background:linear-gradient(145deg,#1a1a2e,#0f3460);border-radius:24px;padding:24px}
+.bc-amount{font-size:48px;font-weight:700;margin-bottom:10px}
+.bc-row{display:flex;gap:15px;margin-top:15px;border-top:0.5px solid rgba(255,255,255,.1)}
+.bc-item{flex:1;padding-top:15px}
+.ios-list{margin:0 16px;background:var(--bg3);border-radius:var(--r);overflow:hidden}
+.ios-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:0.5px solid var(--sep)}
+.ios-row-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.ios-row-ico.out{background:var(--red)}.ios-row-ico.in{background:var(--grn)}
+.ios-row-body{flex:1}.ios-row-amt{font-weight:600}.ios-row-amt.out{color:var(--red)}.ios-row-amt.in{color:var(--grn)}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px}
+.nk{background:var(--bg3);border:none;border-radius:12px;height:60px;font-size:24px;color:#fff}
+.nk.action{background:var(--blue);grid-column:span 3}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(44,44,46,.9);padding:10px 20px;border-radius:20px;opacity:0;transition:.3s;z-index:1000}
+.toast.show{opacity:1}
+.sync-btn{margin:10px 16px;padding:10px;width:calc(100% - 32px);background:var(--bg3);border:none;color:var(--blue);border-radius:10px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="content" id="content">
+<div class="safe-top"></div>
+<div id="pg-home" class="pg on">
+    <div class="large-title">Баланс</div>
+    <div class="balance-card">
+        <div class="bc-amount"><span id="h-bal">0</span> <small style="font-size:18px">сўм</small></div>
+        <div class="bc-row">
+            <div class="bc-item" style="color:var(--grn)">Кирим: <br><span id="h-inc">0</span></div>
+            <div class="bc-item" style="color:var(--red)">Чиқим: <br><span id="h-exp">0</span></div>
+        </div>
+    </div>
+    <button class="sync-btn" onclick="syncFromCloud()">☁ Булутдан янгилаш</button>
+    <div id="home-list-wrap"></div>
+</div>
+<div id="pg-add" class="pg">
+    <div class="large-title">Қўшиш</div>
+    <div style="text-align:center;margin:20px 0">
+        <div style="font-size:14px;color:var(--txt2)">Сумма</div>
+        <div style="font-size:50px;font-weight:200" id="disp-amt">0</div>
+        <input id="f-name" placeholder="Нима учун?" style="width:80%;padding:12px;background:var(--bg3);border:none;border-radius:10px;color:#fff;margin-top:10px;text-align:center"/>
+    </div>
+    <div class="numpad" id="numpad"></div>
+</div>
+</div>
+<nav class="tabbar">
+    <button class="tb on" onclick="go('home',this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Бош</span></button>
+    <button class="tb" onclick="go('add',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg><span>Қўшиш</span></button>
+</nav>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+// !!! ШУ ЕРГА GOOGLE SCRIPT URL-НИ ҚЎЙИНГ !!!
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyxdehKmUDj68GZCwWQ5yioiv5sdV_JTgEbwkMKnWCIqy1CH56PfC2u3OJB32C4Xu8/exec";
+
+let txs = JSON.parse(localStorage.getItem('p_txs')||'[]');
+let amtStr = '';
+let txType = 'expense';
+
+function save(){ localStorage.setItem('p_txs', JSON.stringify(txs)); }
+function fmt(n){ return Math.abs(n).toLocaleString(); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+
+function go(name,btn){
+    document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+    document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+    document.getElementById('pg-'+name).classList.add('on');
+    btn.classList.add('on');
+    if(name==='home') renderHome();
+}
+
+function buildNumpad(){
+    const keys=['7','8','9','4','5','6','1','2','3','.', '0','⌫'];
+    const np=document.getElementById('numpad');
+    keys.forEach(k=>{
+        const b=document.createElement('button'); b.className='nk'; b.textContent=k;
+        b.onclick=()=>{
+            if(k==='⌫') amtStr=amtStr.slice(0,-1);
+            else if(k==='.' && !amtStr.includes('.')) amtStr+=k;
+            else if(k!=='.' && k!=='⌫') amtStr+=k;
+            document.getElementById('disp-amt').textContent = amtStr||'0';
+        };
+        np.appendChild(b);
+    });
+    const sub=document.createElement('button'); sub.className='nk action'; sub.textContent='Сақлаш';
+    sub.onclick=addTx; np.appendChild(sub);
+}
+
+async function addTx(){
+    const name=document.getElementById('f-name').value||'Харажат';
+    const amt=parseFloat(amtStr);
+    if(!amt) return toast('Сумма киритинг');
+    const newTx={id:Date.now(),name,amt,type:txType,date:new Date().toISOString()};
+    txs.unshift(newTx); save();
+    renderHome();
+    toast('Телефонга сақланди...');
+    try {
+        await fetch(GOOGLE_SHEET_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(newTx)});
+        toast('✓ Google Таблицага юборилди');
+    } catch(e) { toast('⚠ Фақат телефонга сақланди'); }
+    amtStr=''; document.getElementById('disp-amt').textContent='0';
+}
+
+async function syncFromCloud(){
+    toast('☁ Юкланмоқда...');
+    try {
+        const res=await fetch(GOOGLE_SHEET_URL);
+        const data=await res.json();
+        if(data.length>0){ txs=data; save(); renderHome(); toast('✓ Маълумотлар янгиланди'); }
+    } catch(e){ toast('Хатолик юз берди'); }
+}
+
+function renderHome(){
+    const inc=txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
+    const exp=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
+    document.getElementById('h-bal').textContent=fmt(inc-exp);
+    document.getElementById('h-inc').textContent=fmt(inc);
+    document.getElementById('h-exp').textContent=fmt(exp);
+    const wrap=document.getElementById('home-list-wrap');
+    wrap.innerHTML='<div class="ios-list">' + txs.map(t=>`
+        <div class="ios-row">
+            <div class="ios-row-ico ${t.type==='expense'?'out':'in'}">${t.name[0].toUpperCase()}</div>
+            <div class="ios-row-body"><div>${t.name}</div><div style="font-size:12px;color:var(--txt2)">${t.date.slice(0,10)}</div></div>
+            <div class="ios-row-amt ${t.type==='expense'?'out':'in'}">${t.type==='expense'?'-':'+'}${fmt(t.amt)}</div>
+        </div>`).join('') + '</div>';
+}
+
+buildNumpad(); renderHome();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9PmV2ZW50LnJlc3BvbmRXaXRoKGZldGNoKGUucmVxdWVzdCkpKTs=');
+</script>
+</body>
+</html>"""
+
+# Generate a single HTML file for the user
+with open("pul_app.html", "w", encoding="utf-8") as f:
+    f.write(pwa_html)
