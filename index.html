@@ -102,6 +102,30 @@
         .item-info div:first-child { font-weight: 500; }
         .item-info div:last-child { color: var(--gray); font-size: 12px; }
         .item-amt { color: var(--red); font-weight: 600; }
+        .list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    position: relative;
+}
+
+.delete-btn {
+    color: var(--gray);
+    background: none;
+    border: none;
+    font-size: 18px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-left: 10px;
+    opacity: 0.6;
+}
+
+.delete-btn:hover {
+    color: var(--red);
+    opacity: 1;
+}
     </style>
 </head>
 <body>
@@ -166,9 +190,13 @@
             <div class="list-item">
                 <div class="item-info">
                     <div>${t.name}</div>
-                    <div>${t.date}</div>
+                    <div style="color: var(--gray); font-size: 12px;">${t.date}</div>
                 </div>
-                <div class="item-amt">-${fmt(t.amt)}</div>
+                <div style="display: flex; align-items: center;">
+                    <div class="item-amt">-${fmt(t.amt)}</div>
+                    <!-- Мана ўчириш тугмаси -->
+                    <button class="delete-btn" onclick="deleteTx('${t.name}', '${t.amt}')">✕</button>
+                </div>
             </div>
         `).join('');
         localStorage.setItem('my_money', JSON.stringify(data));
@@ -185,6 +213,26 @@
         
         await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newTx) });
         location.reload(); // Статистика янгиланиши учун
+    }
+    async function deleteTx(name, amt) {
+        if (!confirm("Ушбу харажатни ўчирмоқчимисиз?")) return;
+        
+        // Маҳаллий рўйхатдан ўчириш (тез ишлаши учун)
+        txs = txs.filter(t => !(t.name === name && t.amt == amt));
+        render(txs);
+        
+        try {
+            // Google Script-га ўчириш сўровини юбориш
+            await fetch(GOOGLE_SHEET_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({action: 'delete', name: name, amt: amt})
+            });
+            // Статистика қайта ҳисобланиши учун саҳифани янгилаш
+            location.reload(); 
+        } catch (e) {
+            alert("Булутдан ўчиришда хатолик юз берди");
+        }
     }
 
     load();
