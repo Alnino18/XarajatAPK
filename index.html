@@ -12,316 +12,179 @@
             --red: #ff453a;
             --gray: #8e8e93;
             --text: #ffffff;
-            --ios-blur: rgba(28, 28, 30, 0.8);
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             margin: 0;
-            padding: env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom));
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            padding: 0 0 50px 0;
         }
 
-        /* Замонавий Header */
         .header {
-            padding: 20px 16px 10px;
+            padding: 40px 16px 10px;
             position: sticky;
             top: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(20px);
             z-index: 100;
         }
 
-        h1 {
-            font-size: 34px;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
+        h1 { font-size: 34px; margin: 0; }
 
-        /* Асосий карта (Glassmorphism) */
         .main-card {
             background: linear-gradient(145deg, #1c1c1e, #2c2c2e);
             margin: 16px;
             padding: 24px;
             border-radius: 28px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
         }
 
-        .total-label {
-            color: var(--gray);
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .total-amount {
-            font-size: 42px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
-        /* Инпутлар ва Тугмалар */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .total-amount { font-size: 42px; font-weight: 800; margin: 10px 0 20px; }
 
         input {
             background: rgba(255,255,255,0.1);
             border: none;
             border-radius: 12px;
             color: #fff;
-            padding: 14px 16px;
-            font-size: 17px;
+            padding: 14px;
             width: 100%;
-            outline: none;
-            transition: 0.2s;
-        }
-
-        input:focus {
-            background: rgba(255,255,255,0.15);
+            margin-bottom: 10px;
+            font-size: 16px;
         }
 
         .save-btn {
-            background-color: var(--accent);
-            color: white;
+            background: var(--accent);
+            color: #fff;
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 14px;
-            font-size: 17px;
+            width: 100%;
             font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.1s;
+            font-size: 16px;
         }
 
-        .save-btn:active {
-            transform: scale(0.97);
-        }
+        .section-title { margin: 25px 16px 10px; font-size: 20px; font-weight: 600; }
 
-        /* Харажатлар рўйхати */
-        .section-title {
-            margin: 20px 16px 10px;
-            font-size: 20px;
-            font-weight: 600;
+        /* Ойлик статистика карусели */
+        .stats-container {
+            display: flex;
+            gap: 12px;
+            padding: 0 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
         }
+        .stats-container::-webkit-scrollbar { display: none; }
 
-        .history-list {
-            margin: 0 16px;
+        .stat-card {
             background: var(--card-bg);
+            min-width: 140px;
+            padding: 16px;
             border-radius: 20px;
-            overflow: hidden;
+            text-align: center;
+            scroll-snap-align: start;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
+        .stat-month { color: var(--gray); font-size: 13px; text-transform: capitalize; }
+        .stat-sum { font-size: 17px; font-weight: 600; margin-top: 5px; }
+
+        .history-list { margin: 10px 16px; background: var(--card-bg); border-radius: 20px; overflow: hidden; }
         .list-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
             padding: 14px 16px;
             border-bottom: 0.5px solid rgba(255,255,255,0.1);
-            animation: fadeIn 0.4s ease-out;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .item-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 69, 58, 0.15);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--red);
-            font-weight: bold;
-            margin-right: 14px;
-        }
-
-        .item-info {
-            flex: 1;
-        }
-
-        .item-name {
-            font-size: 17px;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .item-date {
-            font-size: 13px;
-            color: var(--gray);
-        }
-
-        .item-amount {
-            color: var(--red);
-            font-weight: 600;
-            font-size: 17px;
-        }
-
-        .delete-action {
-            margin-left: 12px;
-            color: var(--gray);
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        /* Toast хабарнома */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.95);
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: 500;
-            font-size: 14px;
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
+        .item-info div:first-child { font-weight: 500; }
+        .item-info div:last-child { color: var(--gray); font-size: 12px; }
+        .item-amt { color: var(--red); font-weight: 600; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>Ҳисоб</h1>
-</div>
+<div class="header"><h1>Ҳисоб</h1></div>
 
 <div class="main-card">
-    <div class="total-label">Умумий харажатлар</div>
+    <div style="color:var(--gray); font-size:13px;">УМУМИЙ ХАРАЖАТ</div>
     <div class="total-amount" id="total-val">0 сўм</div>
-    
-    <div class="input-group">
-        <input type="text" id="f-name" placeholder="Нима сотиб олдингиз?">
-        <input type="number" id="f-amt" placeholder="Сумма (масалан: 50000)">
-        <button class="save-btn" onclick="addTx()">Харажатни қўшиш</button>
-    </div>
+    <input type="text" id="f-name" placeholder="Нима сотиб олдингиз?">
+    <input type="number" id="f-amt" placeholder="Сумма">
+    <button class="save-btn" onclick="addTx()">Қўшиш</button>
 </div>
+
+<div class="section-title">Ойлик ҳисобот</div>
+<div id="stats" class="stats-container">
+    </div>
 
 <div class="section-title">Тарих</div>
-<div id="list" class="history-list">
-    <!-- Маълумотлар шу ерга тушади -->
-</div>
-
-<div id="toast" class="toast">Хабар юборилди</div>
+<div id="list" class="history-list"></div>
 
 <script>
-    // СКРИПТ URL-НИ ШУ ЕРГА ҚЎЙИНГ
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzgDcV_kaMGFLE-IpUlun5VBRuwGdq3MP9P5g6RaNMr4hmAYUXlBm5p4JsjGA3lzbT2/exec";
-    let txs = JSON.parse(localStorage.getItem('my_money') || '[]');
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxWodgA8CO5PcQmTSC5mLmNhJNWR6cG8jgqPJ2oRdiBEaYYWYAA3k-aeKcPbTgr8USO/exec";
+    let txs = [];
 
-    function toast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2500);
-    }
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
-    function fmt(n) {
-        return Number(n).toLocaleString('uz-UZ');
-    }
+    function fmt(n) { return Number(n).toLocaleString('uz-UZ') + " сўм"; }
 
     async function load() {
-        render();
         try {
             const r = await fetch(GOOGLE_SHEET_URL);
-            txs = await r.json();
-            localStorage.setItem('my_money', JSON.stringify(txs));
-            render();
-        } catch (e) { console.log("Оффлайн режими"); }
+            const res = await r.json();
+            txs = res.history;
+            render(txs);
+            renderStats(res.stats);
+        } catch (e) { 
+            console.error("Хатолик:", e);
+            const local = JSON.parse(localStorage.getItem('my_money') || '[]');
+            render(local);
+        }
+    }
+
+    function renderStats(stats) {
+        const container = document.getElementById('stats');
+        container.innerHTML = Object.keys(stats).map(mY => {
+            const [m, Y] = mY.split('.');
+            return `
+                <div class="stat-card">
+                    <div class="stat-month">${monthNames[parseInt(m)-1]} ${Y}</div>
+                    <div class="stat-sum">${fmt(stats[mY])}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function render(data) {
+        const total = data.reduce((s, t) => s + Number(t.amt), 0);
+        document.getElementById('total-val').textContent = fmt(total);
+        
+        document.getElementById('list').innerHTML = data.map(t => `
+            <div class="list-item">
+                <div class="item-info">
+                    <div>${t.name}</div>
+                    <div>${t.date}</div>
+                </div>
+                <div class="item-amt">-${fmt(t.amt)}</div>
+            </div>
+        `).join('');
+        localStorage.setItem('my_money', JSON.stringify(data));
     }
 
     async function addTx() {
-        const nameInput = document.getElementById('f-name');
-        const amtInput = document.getElementById('f-amt');
+        const n = document.getElementById('f-name').value;
+        const a = document.getElementById('f-amt').value;
+        if(!n || !a) return;
         
-        if (!nameInput.value || !amtInput.value) {
-            toast("Маълумотларни тўлиқ тўлдиринг");
-            return;
-        }
-
-        const newTx = {
-            name: nameInput.value,
-            amt: amtInput.value,
-            date: new Date().toLocaleString('uz-UZ').slice(0, 17)
-        };
-
+        const newTx = { name: n, amt: a, date: new Date().toLocaleString('uz-UZ').slice(0, 17) };
         txs.unshift(newTx);
-        render();
+        render(txs);
         
-        nameInput.value = '';
-        amtInput.value = '';
-
-        try {
-            await fetch(GOOGLE_SHEET_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(newTx)
-            });
-            toast("Булутга муваффақиятли сақланди");
-        } catch (e) {
-            toast("Хатолик: фақат телефонда сақланди");
-        }
-    }
-
-    async function deleteTx(name, amt) {
-        if (!confirm("Ушбу харажатни ўчирмоқчимисиз?")) return;
-        
-        txs = txs.filter(t => !(t.name === name && t.amt == amt));
-        render();
-        
-        try {
-            await fetch(GOOGLE_SHEET_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({action: 'delete', name, amt})
-            });
-            toast("Ўчирилди");
-        } catch (e) {
-            toast("Булутда ўчиришда хатолик");
-        }
-    }
-
-    function render() {
-        const total = txs.reduce((s, t) => s + Number(t.amt), 0);
-        document.getElementById('total-val').textContent = fmt(total) + " сўм";
-        
-        const listDiv = document.getElementById('list');
-        if (txs.length === 0) {
-            listDiv.innerHTML = '<div style="padding:40px; text-align:center; color:#8e8e93;">Ҳозирча харажатлар йўқ</div>';
-            return;
-        }
-
-        listDiv.innerHTML = txs.map(t => `
-            <div class="list-item">
-                <div class="item-icon">${t.name[0].toUpperCase()}</div>
-                <div class="item-info">
-                    <div class="item-name">${t.name}</div>
-                    <div class="item-date">${t.date}</div>
-                </div>
-                <div class="item-amount">-${fmt(t.amt)}</div>
-                <button class="delete-action" onclick="deleteTx('${t.name}', ${t.amt})">&times;</button>
-            </div>
-        `).join('');
+        await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newTx) });
+        location.reload(); // Статистика янгиланиши учун
     }
 
     load();
