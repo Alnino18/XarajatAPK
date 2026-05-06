@@ -134,7 +134,7 @@
     let txs = [], selectedType = 'Нақд', currentFilter = 'day', myChartObj = null;
 
     function fmt(n) { return Number(n).toLocaleString('uz-UZ') + " сўм"; }
-
+    
     function setType(t, btn) {
         selectedType = t;
         document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -193,35 +193,85 @@
     }
 
     function renderAnalysis() {
-        const now = new Date();
-        const filtered = txs.filter(t => {
-            if(!t.date) return false;
-            const [d, m, y] = t.date.split(' ')[0].split('.');
-            const tDate = new Date(y, m-1, d);
-            if (currentFilter === 'day') return tDate.toDateString() === now.toDateString();
-            if (currentFilter === 'week') return (now - tDate) / 86400000 <= 7;
-            return m-1 === now.getMonth() && y == now.getFullYear();
-        });
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Соатни ноль қиламиз, фақат кунни солиштириш учун
 
-        const summary = {};
-        filtered.forEach(t => { summary[t.name] = (summary[t.name] || 0) + Number(t.amt); });
-        const sorted = Object.entries(summary).sort((a,b) => b[1] - a[1]);
+    const filtered = txs.filter(t => {
+        if (!t.date || typeof t.date !== 'string') return false;
 
-        document.getElementById('group-list').innerHTML = sorted.map(([n, s]) => `
-            <div class="list-item"><div><b>${n}</b></div><b style="color:var(--red)">-${fmt(s)}</b></div>
+        // Санани қисмларга ажратамиз: "dd.mm.yyyy hh:mm" -> ["dd", "mm", "yyyy"]
+        const datePart = t.date.split(' ')[0];
+        const parts = datePart.split('.');
+        
+        if (parts.length !== 3) return false;
+
+        // Рақамга ўгирамиз: йил, ой (0-11), кун
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const y = parseInt(parts[2], 10);
+        
+        const tDate = new Date(y, m, d);
+        tDate.setHours(0, 0, 0, 0);
+
+        if (currentFilter === 'day') {
+            return tDate.getTime() === now.getTime();
+        }
+        if (currentFilter === 'week') {
+            const diffTime = now - tDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            return diffDays >= 0 && diffDays <= 7;
+        }
+        if (currentFilter === 'month') {
+            return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+        }
+        return true;
+    });
+
+    const summary = {};
+    filtered.forEach(t => { 
+        const name = t.name ? t.name.trim() : "Номаълум";
+        summary[name] = (summary[name] || 0) + Number(t.amt); 
+    });
+
+    const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1]);
+
+    // Рўйхатни янгилаш
+    const groupList = document.getElementById('group-list');
+    if (sorted.length === 0) {
+        groupList.innerHTML = '<div style="padding:20px; text-align:center; color:gray;">Маълумот топилмади</div>';
+    } else {
+        groupList.innerHTML = sorted.map(([n, s]) => `
+            <div class="list-item">
+                <div><b>${n}</b></div>
+                <b style="color:var(--red)">-${fmt(s)}</b>
+            </div>
         `).join('');
+    }
 
-        const ctx = document.getElementById('myChart').getContext('2d');
-        if(myChartObj) myChartObj.destroy();
+    // Диаграммани янгилаш
+    const ctx = document.getElementById('myChart').getContext('2d');
+    if (myChartObj) myChartObj.destroy();
+    
+    if (sorted.length > 0) {
         myChartObj = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: sorted.map(i => i[0]),
-                datasets: [{ data: sorted.map(i => i[1]), backgroundColor: ['#ff453a', '#32d74b', '#0a84ff', '#ff9f0a', '#bf5af2'], borderWidth: 0 }]
+                datasets: [{ 
+                    data: sorted.map(i => i[1]), 
+                    backgroundColor: ['#ff453a', '#32d74b', '#0a84ff', '#ff9f0a', '#bf5af2', '#64d2ff'], 
+                    borderWidth: 0 
+                }]
             },
-            options: { plugins: { legend: { display: false } }, cutout: '75%' }
+            options: { 
+                plugins: { legend: { display: false } }, 
+                cutout: '75%',
+                responsive: true,
+                maintainAspectRatio: false
+            }
         });
     }
+}
 
     async function addTx() {
         const n = document.getElementById('f-name').value, a = document.getElementById('f-amt').value;
