@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>Пул Назорати</title>
+    <title>Пул Назорати Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #000000;
             --card-bg: #1c1c1e;
+            --ios-blur: rgba(28, 28, 30, 0.8);
             --accent: #0a84ff;
             --red: #ff453a;
             --gray: #8e8e93;
@@ -19,19 +21,12 @@
             color: var(--text);
             font-family: -apple-system, system-ui, sans-serif;
             margin: 0;
-            padding: 0 0 50px 0;
+            padding: 0 0 80px 0; /* Меню учун жой */
+            overflow-x: hidden;
         }
 
-        .header {
-            padding: 40px 16px 10px;
-            position: sticky;
-            top: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(20px);
-            z-index: 100;
-        }
-
-        h1 { font-size: 34px; margin: 0; }
+        .header { padding: 40px 20px 10px; position: sticky; top: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); z-index: 100; }
+        h1 { font-size: 32px; margin: 0; font-weight: 700; }
 
         .main-card {
             background: linear-gradient(145deg, #1c1c1e, #2c2c2e);
@@ -39,121 +34,122 @@
             padding: 24px;
             border-radius: 28px;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .total-amount { font-size: 42px; font-weight: 800; margin: 10px 0 20px; }
+        .total-label { color: var(--gray); font-size: 13px; letter-spacing: 1px; }
+        .total-amount { font-size: 40px; font-weight: 800; margin: 10px 0 20px; }
 
         input {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.08);
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             color: #fff;
-            padding: 14px;
+            padding: 15px;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 16px;
+            box-sizing: border-box;
         }
 
         .save-btn {
             background: var(--accent);
             color: #fff;
             border: none;
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 14px;
+            padding: 15px;
             width: 100%;
             font-weight: 600;
             font-size: 16px;
+            transition: opacity 0.2s;
         }
 
-        .section-title { margin: 25px 16px 10px; font-size: 20px; font-weight: 600; }
+        .section-title { margin: 25px 20px 10px; font-size: 20px; font-weight: 600; }
 
-        /* Ойлик статистика карусели */
-        .stats-container {
-            display: flex;
-            gap: 12px;
-            padding: 0 16px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-        .stats-container::-webkit-scrollbar { display: none; }
-
-        .stat-card {
-            background: var(--card-bg);
-            min-width: 140px;
-            padding: 16px;
-            border-radius: 20px;
-            text-align: center;
-            scroll-snap-align: start;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .stat-month { color: var(--gray); font-size: 13px; text-transform: capitalize; }
-        .stat-sum { font-size: 17px; font-weight: 600; margin-top: 5px; }
-
-        .history-list { margin: 10px 16px; background: var(--card-bg); border-radius: 20px; overflow: hidden; }
+        .history-list { margin: 10px 16px; background: var(--card-bg); border-radius: 24px; overflow: hidden; }
         .list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 16px;
+            padding: 16px;
             border-bottom: 0.5px solid rgba(255,255,255,0.1);
         }
-        .item-info div:first-child { font-weight: 500; }
-        .item-info div:last-child { color: var(--gray); font-size: 12px; }
-        .item-amt { color: var(--red); font-weight: 600; }
-        .list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 16px;
-    border-bottom: 0.5px solid rgba(255,255,255,0.1);
-    position: relative;
-}
 
-.delete-btn {
-    color: var(--gray);
-    background: none;
-    border: none;
-    font-size: 18px;
-    padding: 5px 10px;
-    cursor: pointer;
-    margin-left: 10px;
-    opacity: 0.6;
-}
+        .item-name { font-weight: 500; font-size: 17px; }
+        .item-date { color: var(--gray); font-size: 12px; margin-top: 2px; }
+        .item-amt { color: var(--red); font-weight: 600; font-size: 17px; }
 
-.delete-btn:hover {
-    color: var(--red);
-    opacity: 1;
-}
+        .delete-btn {
+            background: none; border: none; color: var(--gray);
+            font-size: 18px; margin-left: 15px; padding: 5px; opacity: 0.5;
+        }
+
+        /* Таб Бар */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--ios-blur); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around;
+            padding: 12px 0 env(safe-area-inset-bottom);
+            border-top: 0.5px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+        }
+        .tab-item { text-align: center; color: var(--gray); flex: 1; cursor: pointer; transition: 0.3s; }
+        .tab-item.active { color: var(--accent); }
+        .tab-icon { font-size: 22px; margin-bottom: 4px; }
+        .tab-text { font-size: 10px; font-weight: 500; }
     </style>
 </head>
 <body>
 
-<div class="header"><h1>Ҳисоб</h1></div>
-
-<div class="main-card">
-    <div style="color:var(--gray); font-size:13px;">УМУМИЙ ХАРАЖАТ</div>
-    <div class="total-amount" id="total-val">0 сўм</div>
-    <input type="text" id="f-name" placeholder="Нима сотиб олдингиз?">
-    <input type="number" id="f-amt" placeholder="Сумма">
-    <button class="save-btn" onclick="addTx()">Қўшиш</button>
+<!-- Асосий Экран -->
+<div id="page-main">
+    <div class="header"><h1>Ҳисоб</h1></div>
+    <div class="main-card">
+        <div class="total-label">УМУМИЙ ХАРАЖАТ</div>
+        <div class="total-amount" id="total-val">0 сўм</div>
+        <input type="text" id="f-name" placeholder="Нима сотиб олдингиз?">
+        <input type="number" id="f-amt" placeholder="Сумма">
+        <button class="save-btn" onclick="addTx()">Қўшиш</button>
+    </div>
+    <div class="section-title">Тарих</div>
+    <div id="list" class="history-list"></div>
 </div>
 
-<div class="section-title">Ойлик ҳисобот</div>
-<div id="stats" class="stats-container">
+<!-- Таҳлил Экрани -->
+<div id="page-chart" style="display: none;">
+    <div class="header"><h1>Таҳлил</h1></div>
+    <div class="main-card" style="padding: 30px;">
+        <canvas id="myChart"></canvas>
     </div>
+    <div class="section-title">Гуруҳланган харажатлар</div>
+    <div id="group-list" class="history-list"></div>
+</div>
 
-<div class="section-title">Тарих</div>
-<div id="list" class="history-list"></div>
+<!-- Навигация -->
+<div class="tab-bar">
+    <div class="tab-item active" id="tab-main" onclick="showTab('main')">
+        <div class="tab-icon">🏠</div><div class="tab-text">Асосий</div>
+    </div>
+    <div class="tab-item" id="tab-chart" onclick="showTab('chart')">
+        <div class="tab-icon">📊</div><div class="tab-text">Таҳлил</div>
+    </div>
+</div>
 
 <script>
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzh9xXHyvpIEsKkBzFu25PDB6bcBMR9dQFjYHF-8BcELGKLmErWjPMvWzudVdU3ITWd/exec";
     let txs = [];
-
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    let myChartObj = null;
 
     function fmt(n) { return Number(n).toLocaleString('uz-UZ') + " сўм"; }
+
+    // Экранларни алмаштириш
+    function showTab(tab) {
+        document.getElementById('page-main').style.display = tab === 'main' ? 'block' : 'none';
+        document.getElementById('page-chart').style.display = tab === 'chart' ? 'block' : 'none';
+        document.getElementById('tab-main').classList.toggle('active', tab === 'main');
+        document.getElementById('tab-chart').classList.toggle('active', tab === 'chart');
+        if(tab === 'chart') renderAnalysis();
+    }
 
     async function load() {
         try {
@@ -161,43 +157,21 @@
             const res = await r.json();
             txs = res.history;
             render(txs);
-            renderStats(res.stats);
-        } catch (e) { 
-            console.error("Хатолик:", e);
+        } catch (e) {
             const local = JSON.parse(localStorage.getItem('my_money') || '[]');
             render(local);
         }
     }
 
-    function renderStats(stats) {
-        const container = document.getElementById('stats');
-        container.innerHTML = Object.keys(stats).map(mY => {
-            const [m, Y] = mY.split('.');
-            return `
-                <div class="stat-card">
-                    <div class="stat-month">${monthNames[parseInt(m)-1]} ${Y}</div>
-                    <div class="stat-sum">${fmt(stats[mY])}</div>
-                </div>
-            `;
-        }).join('');
-    }
-
     function render(data) {
-        // Умумий суммани барча элементлар бўйича ҳисоблаш
         const total = data.reduce((s, t) => s + (Number(t.amt) || 0), 0);
         document.getElementById('total-val').textContent = fmt(total);
         
-        const listDiv = document.getElementById('list');
-        if (data.length === 0) {
-            listDiv.innerHTML = '<div style="padding:20px; text-align:center; color:gray;">Маълумот йўқ</div>';
-            return;
-        }
-
-        listDiv.innerHTML = data.map(t => `
+        document.getElementById('list').innerHTML = data.map(t => `
             <div class="list-item">
                 <div class="item-info">
-                    <div>${t.name}</div>
-                    <div style="color: var(--gray); font-size: 12px;">${t.date || ''}</div>
+                    <div class="item-name">${t.name}</div>
+                    <div class="item-date">${t.date || ''}</div>
                 </div>
                 <div style="display: flex; align-items: center;">
                     <div class="item-amt">-${fmt(t.amt)}</div>
@@ -205,59 +179,68 @@
                 </div>
             </div>
         `).join('');
-        
         localStorage.setItem('my_money', JSON.stringify(data));
     }
 
-    async function addTx() {
-    const n = document.getElementById('f-name').value;
-    const a = document.getElementById('f-amt').value;
-    if(!n || !a) return;
-    
-    // Эски маълумотларни сақлаб қолган ҳолда янгисини қўшиш
-    const newEntry = { 
-        name: n, 
-        amt: Number(a), 
-        date: new Date().toLocaleString('uz-UZ').slice(0, 17) 
-    };
-    
-    // МУҲИМ: txs массивига янгисини қўшамиз, уни алмаштириб юбормаймиз
-    txs.unshift(newEntry); 
-    render(txs); // Тарихини қайта чиқариш
-    
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-amt').value = '';
+    function renderAnalysis() {
+        const summary = {};
+        txs.forEach(t => {
+            const name = t.name.trim();
+            summary[name] = (summary[name] || 0) + Number(t.amt);
+        });
 
-    // Серверга юбориш
-    await fetch(GOOGLE_SHEET_URL, { 
-        method: 'POST', 
-        mode: 'no-cors', 
-        body: JSON.stringify({name: n, amt: a}) 
-    });
-    
-    // Бир оз кутиб базадан янги рўйхатни қайта юклаш (статистика учун)
-    setTimeout(load, 2000);
-}
-    
-    async function deleteTx(name, amt) {
-        if (!confirm("Ушбу харажатни ўчирмоқчимисиз?")) return;
+        const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1]);
         
-        // Маҳаллий рўйхатдан ўчириш (тез ишлаши учун)
-        txs = txs.filter(t => !(t.name === name && t.amt == amt));
+        // Рўйхатни чиқариш
+        document.getElementById('group-list').innerHTML = sorted.map(([name, sum]) => `
+            <div class="list-item">
+                <div class="item-info">
+                    <div class="item-name">${name}</div>
+                    <div class="item-date">Жами сумма</div>
+                </div>
+                <div class="item-amt">-${fmt(sum)}</div>
+            </div>
+        `).join('');
+
+        // Диаграммани чизиш
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (myChartObj) myChartObj.destroy();
+        myChartObj = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: sorted.map(i => i[0]),
+                datasets: [{
+                    data: sorted.map(i => i[1]),
+                    backgroundColor: ['#ff453a', '#32d74b', '#0a84ff', '#ff9f0a', '#bf5af2', '#64d2ff', '#ffd60a'],
+                    borderWidth: 0
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, cutout: '75%' }
+        });
+    }
+
+    async function addTx() {
+        const n = document.getElementById('f-name').value;
+        const a = document.getElementById('f-amt').value;
+        if(!n || !a) return;
+        
+        const newTx = { name: n, amt: a, date: new Date().toLocaleString('uz-UZ').slice(0,17) };
+        txs.unshift(newTx);
         render(txs);
         
-        try {
-            // Google Script-га ўчириш сўровини юбориш
-            await fetch(GOOGLE_SHEET_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({action: 'delete', name: name, amt: amt})
-            });
-            // Статистика қайта ҳисобланиши учун саҳифани янгилаш
-            location.reload(); 
-        } catch (e) {
-            alert("Булутдан ўчиришда хатолик юз берди");
-        }
+        document.getElementById('f-name').value = '';
+        document.getElementById('f-amt').value = '';
+
+        await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({name:n, amt:a}) });
+        setTimeout(load, 1000);
+    }
+
+    async function deleteTx(name, amt) {
+        if(!confirm("Ўчирилсинми?")) return;
+        txs = txs.filter(t => !(t.name === name && t.amt == amt));
+        render(txs);
+        await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:'delete', name:name, amt:amt}) });
+        setTimeout(load, 500);
     }
 
     load();
