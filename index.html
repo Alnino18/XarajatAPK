@@ -148,7 +148,7 @@
 <div id="list" class="history-list"></div>
 
 <script>
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxWodgA8CO5PcQmTSC5mLmNhJNWR6cG8jgqPJ2oRdiBEaYYWYAA3k-aeKcPbTgr8USO/exec";
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzh9xXHyvpIEsKkBzFu25PDB6bcBMR9dQFjYHF-8BcELGKLmErWjPMvWzudVdU3ITWd/exec";
     let txs = [];
 
     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
@@ -210,40 +210,34 @@
     }
 
     async function addTx() {
-        const nInput = document.getElementById('f-name');
-        const aInput = document.getElementById('f-amt');
-        const n = nInput.value.trim();
-        const a = aInput.value.trim();
-        
-        if(!n || !a) return;
-        
-        // Янги харажат объекти
-        const newEntry = { 
-            name: n, 
-            amt: Number(a), 
-            date: new Date().toLocaleString('uz-UZ').slice(0, 17).replace(',', '') 
-        };
-        
-        // Эски маълумотларни йўқотиб қўймаслик учун уларнинг бошига қўшамиз
-        txs.unshift(newEntry); 
-        render(txs); // Энди ҳаммасини қайта чиқаради
-        
-        nInput.value = '';
-        aInput.value = '';
+    const n = document.getElementById('f-name').value;
+    const a = document.getElementById('f-amt').value;
+    if(!n || !a) return;
+    
+    // Эски маълумотларни сақлаб қолган ҳолда янгисини қўшиш
+    const newEntry = { 
+        name: n, 
+        amt: Number(a), 
+        date: new Date().toLocaleString('uz-UZ').slice(0, 17) 
+    };
+    
+    // МУҲИМ: txs массивига янгисини қўшамиз, уни алмаштириб юбормаймиз
+    txs.unshift(newEntry); 
+    render(txs); // Тарихини қайта чиқариш
+    
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-amt').value = '';
 
-        try {
-            await fetch(GOOGLE_SHEET_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify({name: n, amt: a}) 
-            });
-            
-            // Маълумотлар базадан янгиланиши ва ойлик ҳисобот тўғриланиши учун
-            setTimeout(load, 1500); 
-        } catch (e) {
-            console.log("Хатолик юз берди");
-        }
-    }
+    // Серверга юбориш
+    await fetch(GOOGLE_SHEET_URL, { 
+        method: 'POST', 
+        mode: 'no-cors', 
+        body: JSON.stringify({name: n, amt: a}) 
+    });
+    
+    // Бир оз кутиб базадан янги рўйхатни қайта юклаш (статистика учун)
+    setTimeout(load, 2000);
+}
     
     async function deleteTx(name, amt) {
         if (!confirm("Ушбу харажатни ўчирмоқчимисиз?")) return;
