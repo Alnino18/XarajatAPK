@@ -192,35 +192,31 @@
         renderAnalysis();
     }
 
-    function renderAnalysis() {
+ function renderAnalysis() {
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Соатни ноль қиламиз, фақат кунни солиштириш учун
-
+    
     const filtered = txs.filter(t => {
-        if (!t.date || typeof t.date !== 'string') return false;
+        if (!t.date) return false;
 
-        // Санани қисмларга ажратамиз: "dd.mm.yyyy hh:mm" -> ["dd", "mm", "yyyy"]
-        const datePart = t.date.split(' ')[0];
-        const parts = datePart.split('.');
+        // Исталган форматдаги санани JavaScript санасига ўгириш
+        const tDate = new Date(t.date);
         
-        if (parts.length !== 3) return false;
+        // Агар сана нотўғри бўлса (масалан, матн келиб қолса), ўтказиб юборамиз
+        if (isNaN(tDate)) return false;
 
-        // Рақамга ўгирамиз: йил, ой (0-11), кун
-        const d = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10) - 1;
-        const y = parseInt(parts[2], 10);
-        
-        const tDate = new Date(y, m, d);
-        tDate.setHours(0, 0, 0, 0);
+        // Солиштириш учун вақтни 00:00:00 га туширамиз
+        const compareNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const compareTDate = new Date(tDate.getFullYear(), tDate.getMonth(), tDate.getDate());
 
         if (currentFilter === 'day') {
-            return tDate.getTime() === now.getTime();
+            return compareTDate.getTime() === compareNow.getTime();
         }
+        
         if (currentFilter === 'week') {
-            const diffTime = now - tDate;
-            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            const diffDays = (compareNow - compareTDate) / (1000 * 60 * 60 * 24);
             return diffDays >= 0 && diffDays <= 7;
         }
+        
         if (currentFilter === 'month') {
             return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
         }
@@ -235,10 +231,10 @@
 
     const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1]);
 
-    // Рўйхатни янгилаш
+    // Рўйхатни чиқариш
     const groupList = document.getElementById('group-list');
     if (sorted.length === 0) {
-        groupList.innerHTML = '<div style="padding:20px; text-align:center; color:gray;">Маълумот топилмади</div>';
+        groupList.innerHTML = '<div style="padding:20px; text-align:center; color:gray;">Бу давр учун маълумот топилмади</div>';
     } else {
         groupList.innerHTML = sorted.map(([n, s]) => `
             <div class="list-item">
@@ -248,7 +244,7 @@
         `).join('');
     }
 
-    // Диаграммани янгилаш
+    // Диаграммани чизиш
     const ctx = document.getElementById('myChart').getContext('2d');
     if (myChartObj) myChartObj.destroy();
     
@@ -272,6 +268,7 @@
         });
     }
 }
+
 
     async function addTx() {
         const n = document.getElementById('f-name').value, a = document.getElementById('f-amt').value;
