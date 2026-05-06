@@ -183,37 +183,68 @@
     }
 
     function render(data) {
-        const total = data.reduce((s, t) => s + Number(t.amt), 0);
+        // Умумий суммани барча элементлар бўйича ҳисоблаш
+        const total = data.reduce((s, t) => s + (Number(t.amt) || 0), 0);
         document.getElementById('total-val').textContent = fmt(total);
         
-        document.getElementById('list').innerHTML = data.map(t => `
+        const listDiv = document.getElementById('list');
+        if (data.length === 0) {
+            listDiv.innerHTML = '<div style="padding:20px; text-align:center; color:gray;">Маълумот йўқ</div>';
+            return;
+        }
+
+        listDiv.innerHTML = data.map(t => `
             <div class="list-item">
                 <div class="item-info">
                     <div>${t.name}</div>
-                    <div style="color: var(--gray); font-size: 12px;">${t.date}</div>
+                    <div style="color: var(--gray); font-size: 12px;">${t.date || ''}</div>
                 </div>
                 <div style="display: flex; align-items: center;">
                     <div class="item-amt">-${fmt(t.amt)}</div>
-                    <!-- Мана ўчириш тугмаси -->
                     <button class="delete-btn" onclick="deleteTx('${t.name}', '${t.amt}')">✕</button>
                 </div>
             </div>
         `).join('');
+        
         localStorage.setItem('my_money', JSON.stringify(data));
     }
 
     async function addTx() {
-        const n = document.getElementById('f-name').value;
-        const a = document.getElementById('f-amt').value;
+        const nInput = document.getElementById('f-name');
+        const aInput = document.getElementById('f-amt');
+        const n = nInput.value.trim();
+        const a = aInput.value.trim();
+        
         if(!n || !a) return;
         
-        const newTx = { name: n, amt: a, date: new Date().toLocaleString('uz-UZ').slice(0, 17) };
-        txs.unshift(newTx);
-        render(txs);
+        // Янги харажат объекти
+        const newEntry = { 
+            name: n, 
+            amt: Number(a), 
+            date: new Date().toLocaleString('uz-UZ').slice(0, 17).replace(',', '') 
+        };
         
-        await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newTx) });
-        location.reload(); // Статистика янгиланиши учун
+        // Эски маълумотларни йўқотиб қўймаслик учун уларнинг бошига қўшамиз
+        txs.unshift(newEntry); 
+        render(txs); // Энди ҳаммасини қайта чиқаради
+        
+        nInput.value = '';
+        aInput.value = '';
+
+        try {
+            await fetch(GOOGLE_SHEET_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({name: n, amt: a}) 
+            });
+            
+            // Маълумотлар базадан янгиланиши ва ойлик ҳисобот тўғриланиши учун
+            setTimeout(load, 1500); 
+        } catch (e) {
+            console.log("Хатолик юз берди");
+        }
     }
+    
     async function deleteTx(name, amt) {
         if (!confirm("Ушбу харажатни ўчирмоқчимисиз?")) return;
         
